@@ -1,0 +1,119 @@
+# ============================================================================
+# docker-compose.prod.yml - Production Environment
+# ============================================================================
+
+# Create: docker-compose.prod.yml
+version: '3.8'
+
+services:
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: ai_library_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - api
+    networks:
+      - ai_library_network
+
+  # Main API application
+  api:
+    build: .
+    container_name: ai_library_api
+    restart: unless-stopped
+    environment:
+      - MONGODB_URL=mongodb://admin:${MONGO_PASSWORD}@mongodb:27017/ai_library?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DEBUG=false
+      - SECRET_KEY=${SECRET_KEY}
+    volumes:
+      - ./data/uploads:/app/data/uploads
+      - ./data/vector_stores:/app/data/vector_stores
+      - ./logs:/app/logs
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - ai_library_network
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # MongoDB database
+  mongodb:
+    image: mongo:7.0
+    container_name: ai_library_mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: ai_library
+    volumes:
+      - mongodb_data:/data/db
+      - ./docker/mongodb/mongod.conf:/etc/mongod.conf:ro
+    networks:
+      - ai_library_network
+    command: ["mongod", "--config", "/etc/mongod.conf"]
+
+  # Redis cache
+  redis:
+    image: redis:7.2-alpine
+    container_name: ai_library_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - ai_library_network
+
+  # Prometheus monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ai_library_prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - ai_library_network
+
+  # Grafana dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ai_library_grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+    networks:
+      - ai_library_network
+
+volumes:
+  mongodb_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  ai_library_network:
+    driver: bridge

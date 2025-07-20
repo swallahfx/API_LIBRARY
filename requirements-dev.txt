@@ -1,0 +1,73 @@
+# # ============================================================================
+# # requirements-dev.txt - Development Dependencies
+# # ============================================================================
+
+# # Create: requirements-dev.txt
+# -r requirements.txt
+
+# # Testing
+# pytest==7.4.3
+# pytest-asyncio==0.21.1
+# pytest-cov==4.1.0
+# httpx==0.25.2
+
+# # Code quality
+# black==23.11.0
+# isort==5.12.0
+# flake8==6.1.0
+# mypy==1.7.1
+
+# # Development tools
+# pre-commit==3.5.0
+# watchdog==3.0.0
+
+# # Documentation
+# mkdocs==1.5.3
+# mkdocs-material==9.4.8
+# langchain-core
+
+
+
+# FastAPI and server
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+gunicorn==21.2.0
+
+# Database
+motor==3.3.2
+pymongo==4.6.0
+redis==5.0.1
+
+# AI and ML - FIXED VERSIONS
+langchain==0.1.0
+langchain-community==0.0.10
+langchain-openai==0.0.2
+openai==1.7.2
+faiss-cpu==1.7.4
+
+# File processing
+pypdf==3.17.4
+python-docx==1.1.0
+pandas==2.1.4
+
+# Web and API
+python-multipart==0.0.6
+aiofiles==23.2.1
+httpx==0.25.2
+jinja2==3.1.2
+
+# Security and validation
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+pydantic==2.5.2
+pydantic-settings==2.1.0
+
+# Configuration
+python-dotenv==1.0.0
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3
+click==8.1.7
+
+langchain-core
