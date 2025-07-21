@@ -2,9 +2,12 @@ import uuid
 from typing import Dict, Any, Optional
 from datetime import datetime
 
-from langchain.chat_models import ChatOpenAI
+# from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
-from langchain.schema import Document
+# from langchain.schema import Document
+from langchain_core.documents import Document
+
 
 from app.core.config import settings
 from app.core.database import get_database

@@ -5,8 +5,11 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.document_loaders import PyPDFLoader, TextLoader, CSVLoader
+# from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import PyPDFLoader, TextLoader, CSVLoader
+
+# from langchain.document_loaders import PyPDFLoader, TextLoader, CSVLoader
 
 from app.core.config import settings
 from app.core.database import get_database

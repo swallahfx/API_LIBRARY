@@ -2,9 +2,14 @@ import os
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
-from langchain.schema import Document
+# from langchain_openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
+
+# from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
+# from langchain.schema import Document
+from langchain_core.documents import Document
+
 
 from app.core.config import settings
 from app.core.database import get_database
