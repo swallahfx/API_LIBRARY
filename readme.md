@@ -1,12 +1,3 @@
-
-<<<<<<< HEAD
-# ============================================================================
-# README.md - Project Documentation
-# ============================================================================
-
-# Create: README.md
-=======
->>>>>>> staging
 # 🧠 AI Knowledge Library
 
 A production-ready intelligent document search and Q&A system built with **FastAPI**, **MongoDB**, **LangChain**, and **OpenAI**. Perfect demonstration project for backend developer interviews.
