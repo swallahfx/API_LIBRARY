@@ -9,11 +9,6 @@
 >>>>>>> staging
 # 🧠 AI Knowledge Library
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
-
 A production-ready intelligent document search and Q&A system built with **FastAPI**, **MongoDB**, **LangChain**, and **OpenAI**. Perfect demonstration project for backend developer interviews.
 
 ## ✨ Features
