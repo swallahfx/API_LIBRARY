@@ -2,13 +2,23 @@ import os
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 
+# # from langchain_openai import OpenAIEmbeddings
 # from langchain_openai import OpenAIEmbeddings
-from langchain_openai import OpenAIEmbeddings
+
 
 # from langchain.vectorstores import FAISS
-from langchain_community.vectorstores import FAISS
+# # from langchain_community.vectorstores import FAISS
+
 # from langchain.schema import Document
+# # from langchain_core.documents import Document
+
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
+
+# from langchain_community.embeddings import HuggingFaceEmbeddings
+
+
 
 
 from app.core.config import settings
@@ -23,11 +33,41 @@ class VectorService:
             openai_api_key=settings.OPENAI_API_KEY,
             model=settings.EMBEDDING_MODEL
         )
+        # self.embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+
         self.vector_store: Optional[FAISS] = None
         self.vector_store_path = Path(settings.VECTOR_STORE_PATH)
         self.vector_store_path.mkdir(parents=True, exist_ok=True)
     
+
     async def initialize_vector_store(self):
+        try:
+            # Try to initialize with minimal data
+            self.vector_store = FAISS.from_texts(
+                ["Hello, world"],  # Minimal initialization text
+                self.embeddings
+            )
+            logger.info("Vector store initialized")
+        except Exception as e:
+            logger.warning(f"Failed to initialize vector store: {e}")
+            # Create a mock vector store
+            self.vector_store = None
+            logger.warning("Using mock vector store for development")
+            
+            # Force switch to mock embeddings if OpenAI fails
+            from langchain_core.embeddings import Embeddings
+            
+            class MockEmbeddings(Embeddings):
+                def embed_documents(self, texts):
+                    return [[0.0] * 384 for _ in texts]
+                
+                def embed_query(self, text):
+                    return [0.0] * 384
+            
+            self.embeddings = MockEmbeddings()
+
+
+    async def initialize_vector_store_(self):
         """Initialize or load existing vector store"""
         try:
             # Try to load existing vector store

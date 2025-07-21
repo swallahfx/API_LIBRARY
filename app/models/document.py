@@ -22,7 +22,8 @@ class DocumentCreate(BaseModel):
     metadata: Optional[DocumentMetadata] = None
 
 class DocumentResponse(BaseModel):
-    id: str
+    # id: str
+    id: str = Field(alias="_id")
     filename: str
     content_type: str
     status: DocumentStatus
@@ -31,6 +32,7 @@ class DocumentResponse(BaseModel):
     chunk_count: Optional[int] = None
     file_size: Optional[int] = None
     metadata: Optional[DocumentMetadata] = None
+
 
 class DocumentUpdate(BaseModel):
     title: Optional[str] = None

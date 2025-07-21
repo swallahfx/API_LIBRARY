@@ -16,6 +16,9 @@ RUN apt-get update && apt-get install -y \
 
 # Copy requirements and install Python dependencies
 COPY requirements.txt .
+# Install dependencies for HuggingFace embeddings
+# RUN pip install --no-cache-dir sentence-transformers 
+# RUN pip install --no-cache-dir huggingface_hub==0.16.4
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
@@ -36,4 +39,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health/ || exit 1
 
 # Run the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8088"]

@@ -4,7 +4,12 @@ from datetime import datetime
 
 # from langchain_openai import ChatOpenAI
 from langchain_openai import ChatOpenAI
-from langchain.chains import RetrievalQA
+
+# from langchain.chains import RetrievalQA
+# from langchain_community.chains import RetrievalQA
+from langchain.chains.retrieval_qa.base import RetrievalQA
+
+
 # from langchain.schema import Document
 from langchain_core.documents import Document
 

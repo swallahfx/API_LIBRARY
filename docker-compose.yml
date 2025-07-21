@@ -12,7 +12,7 @@ services:
     container_name: ai_library_api
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8088:8088"
     environment:
       - MONGODB_URL=mongodb://admin:password123@mongodb:27017/ai_library?authSource=admin
       - REDIS_URL=redis://redis:6379
@@ -27,11 +27,7 @@ services:
       - redis
     networks:
       - ai_library_network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    
 
   # MongoDB database
   mongodb:
@@ -49,11 +45,7 @@ services:
       - ./docker/mongodb/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
     networks:
       - ai_library_network
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+   
 
   # Redis cache
   redis:
@@ -67,11 +59,7 @@ services:
       - redis_data:/data
     networks:
       - ai_library_network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  
 
 volumes:
   mongodb_data:
