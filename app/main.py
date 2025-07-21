@@ -65,16 +65,18 @@ app.include_router(documents.router, prefix=f"{settings.API_V1_STR}/documents", 
 app.include_router(queries.router, prefix=f"{settings.API_V1_STR}/queries", tags=["queries"])
 app.include_router(analytics.router, prefix=f"{settings.API_V1_STR}/analytics", tags=["analytics"])
 app.include_router(health.router, prefix="/health", tags=["health"])
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+# Mount a static files directory (if you have CSS, JS, etc.)
 
 # Mount static files
-app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
+# app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
 
 # Serve frontend
 @app.get("/")
 async def serve_frontend():
-    """Serve the main frontend page"""
-    with open("frontend/index.html", "r") as f:
-        return HTMLResponse(content=f.read())
+    return FileResponse("frontend/index.html")
 
 if __name__ == "__main__":
     import uvicorn

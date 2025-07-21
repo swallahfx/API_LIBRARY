@@ -1,4 +1,3 @@
-import motor.motor_asyncio
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from app.core.config import settings
 import logging

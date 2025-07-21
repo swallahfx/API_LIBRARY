@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Knowledge Library</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .drag-area {
+            border: 2px dashed #4299e1;
+            border-radius: 0.5rem;
+            background-color: #ebf8ff;
+            transition: all 0.3s ease;
+        }
+        .drag-area.active {
+            border-color: #3182ce;
+            background-color: #e6fffa;
+        }
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none; /* Hidden by default with display property */
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #fff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-blue-800">AI Knowledge Library</h1>
+            <p class="text-gray-600">Upload documents and search through your knowledge base</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Document Upload Section -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4 text-blue-700">Upload Documents</h2>
+                
+                <div id="drag-area" class="drag-area p-8 mb-4 flex flex-col items-center justify-center cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <p id="file-label" class="text-lg text-blue-600 font-medium">Drag & Drop files here</p>
+                    <p class="text-sm text-gray-500 mt-1">or</p>
+                    <input type="file" id="file-input" class="hidden">
+                    <button id="browse-btn" class="mt-2 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition duration-300">Browse Files</button>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-semibold mb-2" for="metadata">Document Metadata (optional)</label>
+                    <textarea id="metadata" class="w-full p-2 border border-gray-300 rounded-md" rows="3" placeholder='{"category": "research", "tags": ["AI", "machine learning"]}'></textarea>
+                </div>
+                
+                <button id="upload-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition duration-300">Upload Document</button>
+            </div>
+
+            <!-- Search Section -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4 text-blue-700">Search Knowledge Base</h2>
+                
+                <div class="mb-4">
+                    <div class="flex">
+                        <input id="search-input" type="text" placeholder="Ask a question about your documents..." 
+                               class="w-full p-3 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button id="search-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-r-md transition duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="search-results" class="border border-gray-200 rounded-md p-4 min-h-[300px] max-h-[400px] overflow-y-auto">
+                    <p class="text-gray-500 text-center">Search results will appear here</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documents List -->
+        <div class="mt-8 bg-white p-6 rounded-lg shadow-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-blue-700">Your Documents</h2>
+                <button id="refresh-btn" class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-md text-sm">Refresh</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead>
+                        <tr>
+                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Filename</th>
+                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Upload Date</th>
+                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
+                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="documents-list">
+                        <tr>
+                            <td colspan="5" class="py-4 px-4 text-center text-gray-500">Loading documents...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Debug mode
+        const DEBUG = true;
+        
+        // API endpoints
+        const API_BASE_URL = '/api/v1';
+        const ENDPOINTS = {
+            DOCUMENTS: `${API_BASE_URL}/documents/`,
+            QUERIES: `${API_BASE_URL}/queries/`
+        };
+
+        // DOM Elements
+        const loadingElement = document.getElementById('loading');
+        const dragArea = document.getElementById('drag-area');
+        const fileInput = document.getElementById('file-input');
+        const fileLabel = document.getElementById('file-label');
+        const browseBtn = document.getElementById('browse-btn');
+        const uploadBtn = document.getElementById('upload-btn');
+        const metadataInput = document.getElementById('metadata');
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+        const searchResults = document.getElementById('search-results');
+        const documentsList = document.getElementById('documents-list');
+        const refreshBtn = document.getElementById('refresh-btn');
+
+        // Debug logger
+        function log(...args) {
+            if (DEBUG) {
+                console.log(...args);
+            }
+        }
+
+        // Loading functions - Using direct style manipulation for reliability
+        function showLoading() {
+            log('Showing loading spinner');
+            loadingElement.style.display = 'flex';
+        }
+        
+        function hideLoading() {
+            log('Hiding loading spinner');
+            loadingElement.style.display = 'none';
+        }
+
+        // Initialize the app
+        function init() {
+            log('Initializing app');
+            
+            // Set up event listeners
+            browseBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', handleFileSelect);
+            uploadBtn.addEventListener('click', uploadDocument);
+            searchBtn.addEventListener('click', searchQuery);
+            refreshBtn.addEventListener('click', fetchDocuments);
+            searchInput.addEventListener('keypress', e => {
+                if (e.key === 'Enter') searchQuery();
+            });
+            
+            // Drag and drop
+            ['dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dragArea.addEventListener(eventName, e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+            
+            dragArea.addEventListener('dragover', () => dragArea.classList.add('active'));
+            dragArea.addEventListener('dragleave', () => dragArea.classList.remove('active'));
+            dragArea.addEventListener('drop', e => {
+                dragArea.classList.remove('active');
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelect();
+            });
+            
+            // Global error handler
+            window.addEventListener('error', (event) => {
+                log('Global error caught:', event.error);
+                hideLoading();
+                alert(`An error occurred: ${event.error.message}`);
+            });
+            
+            // Load documents on start with a slight delay
+            setTimeout(fetchDocuments, 300);
+        }
+        
+        // File selection handler
+        function handleFileSelect() {
+            if (fileInput.files.length > 0) {
+                fileLabel.textContent = Array.from(fileInput.files)
+                    .map(file => file.name)
+                    .join(', ');
+            }
+        }
+        
+        // Document upload
+        async function uploadDocument() {
+            if (!fileInput.files.length) {
+                alert('Please select a file to upload');
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                
+                // Add metadata if provided
+                if (metadataInput.value.trim()) {
+                    try {
+                        const metadata = JSON.parse(metadataInput.value);
+                        formData.append('metadata', JSON.stringify(metadata));
+                    } catch (e) {
+                        alert('Invalid JSON in metadata field');
+                        hideLoading();
+                        return;
+                    }
+                }
+                
+                log('Uploading document', fileInput.files[0].name);
+                
+                const response = await fetch(ENDPOINTS.DOCUMENTS, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                log('Upload successful', result);
+                
+                alert('Document uploaded successfully!');
+                
+                // Reset form
+                fileInput.value = '';
+                metadataInput.value = '';
+                fileLabel.textContent = 'Drag & Drop files here';
+                
+                // Refresh documents list
+                fetchDocuments();
+            } catch (error) {
+                log('Upload error', error);
+                alert(`Failed to upload document: ${error.message}`);
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Fetch documents list
+        async function fetchDocuments() {
+            log('Fetching documents');
+            showLoading();
+            
+            try {
+                const response = await fetch(ENDPOINTS.DOCUMENTS);
+                log('Documents API response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                log('Documents data received:', data);
+                
+                // Handle different API response formats
+                if (data.documents) {
+                    renderDocumentsList(data.documents);
+                } else if (Array.isArray(data)) {
+                    renderDocumentsList(data);
+                } else {
+                    renderDocumentsList([]);
+                    log('Unexpected API response format', data);
+                }
+            } catch (error) {
+                log('Fetch documents error:', error);
+                documentsList.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-4 px-4 text-center text-red-500">
+                            Error loading documents: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Render documents list
+        function renderDocumentsList(documents) {
+            log('Rendering documents list, count:', documents.length);
+            
+            if (!documents || documents.length === 0) {
+                documentsList.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-4 px-4 text-center text-gray-500">
+                            No documents found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            documentsList.innerHTML = documents.map(doc => {
+                // Handle different document ID formats
+                const docId = doc.id || doc._id || '';
+                
+                return `
+                    <tr>
+                        <td class="py-2 px-4 border-b border-gray-200">${doc.filename || 'Unnamed'}</td>
+                        <td class="py-2 px-4 border-b border-gray-200">${formatDate(doc.upload_date)}</td>
+                        <td class="py-2 px-4 border-b border-gray-200">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                ${doc.status === 'processed' ? 'bg-green-100 text-green-800' : 
+                                  doc.status === 'failed' ? 'bg-red-100 text-red-800' : 
+                                  'bg-yellow-100 text-yellow-800'}">
+                                ${doc.status || 'unknown'}
+                            </span>
+                        </td>
+                        <td class="py-2 px-4 border-b border-gray-200">${formatFileSize(doc.file_size)}</td>
+                        <td class="py-2 px-4 border-b border-gray-200">
+                            <button onclick="deleteDocument('${docId}')" class="text-red-500 hover:text-red-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // Format date
+        function formatDate(dateStr) {
+            if (!dateStr) return 'Unknown';
+            
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleString();
+            } catch (e) {
+                return dateStr;
+            }
+        }
+        
+        // Format file size
+        function formatFileSize(bytes) {
+            if (!bytes) return '0 Bytes';
+            
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Search query
+        async function searchQuery() {
+            const query = searchInput.value.trim();
+            
+            if (!query) {
+                alert('Please enter a search query');
+                return;
+            }
+            
+            showLoading();
+            searchResults.innerHTML = '<p class="text-gray-500 text-center">Searching...</p>';
+            
+            try {
+                log('Searching for:', query);
+                
+                const response = await fetch(ENDPOINTS.QUERIES, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                log('Search results:', result);
+                
+                renderSearchResults(result);
+            } catch (error) {
+                log('Search error:', error);
+                searchResults.innerHTML = `
+                    <p class="text-red-500 text-center">
+                        Search failed: ${error.message}
+                    </p>
+                `;
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Render search results
+        function renderSearchResults(result) {
+            if (!result || !result.answer) {
+                searchResults.innerHTML = '<p class="text-gray-500 text-center">No results found</p>';
+                return;
+            }
+            
+            let sourcesHtml = '';
+            if (result.sources && result.sources.length > 0) {
+                sourcesHtml = `
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-2">Sources:</h4>
+                        <ul class="list-disc pl-5 text-sm text-gray-600">
+                            ${result.sources.map(source => `
+                                <li class="mb-1">
+                                    <span class="font-medium">${source.filename || 'Unknown'}</span>
+                                    ${source.page ? ` - Page ${source.page}` : ''}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            searchResults.innerHTML = `
+                <div class="prose max-w-none">
+                    <p class="text-gray-800">${result.answer}</p>
+                    ${sourcesHtml}
+                </div>
+            `;
+        }
+        
+        // Delete document
+        window.deleteDocument = async function(documentId) {
+            if (!documentId) {
+                alert('Invalid document ID');
+                return;
+            }
+            
+            if (!confirm('Are you sure you want to delete this document?')) {
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                log('Deleting document:', documentId);
+                
+                const response = await fetch(`${ENDPOINTS.DOCUMENTS}${documentId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} ${response.statusText}`);
+                }
+                
+                log('Delete successful');
+                alert('Document deleted successfully');
+                
+                fetchDocuments();
+            } catch (error) {
+                log('Delete error:', error);
+                alert(`Failed to delete document: ${error.message}`);
+            } finally {
+                hideLoading();
+            }
+        };
+        
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
